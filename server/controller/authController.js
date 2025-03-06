@@ -74,7 +74,8 @@ const authController= {
                 secure: false,    
                 maxAge: 7 * 24 * 60 * 60 * 1000, 
                 sameSite: "None",
-                domain : "82.29.162.1"
+                domain : "82.29.162.1",
+                path: "/"
             });
             console.log("Set-Cookie header sent:", refreshToken); // Debug log
      
