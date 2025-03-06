@@ -10,8 +10,9 @@ app.use(cookieParser())
 app.use(express.json())
 
 const allowedOrigins = [
-  
-    "http://localhost:5000", // Local React App
+
+    "http://localhost:5000",
+    "http://82.29.162.1:3000" // Local React App
     
   ];
   
