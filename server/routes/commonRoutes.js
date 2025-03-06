@@ -1,0 +1,55 @@
+import express from "express"
+import commontController from "../controller/common/commonFun.js";
+import adminCtrl from "../controller/adminController.js";
+import authenticateToken from "../middeleware/authMiddeleware.js";
+import proejctinchargeController from "../controller/projectInchargeController.js";
+import engineerController from "../controller/SiteEngineerController.js";
+
+const router= express.Router();
+
+
+//add delete update get Admin
+router.post("/add-admin", commontController.addAdmin );
+router.get("/get-alladmins", commontController.getallAdmins);
+router.put('/update-admin/:username', commontController.updateAdmin)
+router.delete('/delete-admin/:username', commontController.deleteAdmin)
+router.get('/get-allActive-admin', commontController.getallActiveAdmins)
+
+//add project delte project update project
+router.post('/add-project',authenticateToken, adminCtrl.createProject);
+router.put('/update-project/:id', authenticateToken, adminCtrl.updateProject);
+router.get("/get-allproject", authenticateToken, adminCtrl.getProjects);
+router.get("/get-projectsByInchargeId", authenticateToken, adminCtrl.getProjectBYInchargeId)
+
+
+
+//for Add delete update get projectIncharge
+
+router.post("/add-projectIncharge", authenticateToken, adminCtrl.createProjectIncharge );
+router.put("/update-projectIncharge/:id", authenticateToken, adminCtrl.updateProjectIncharge);
+router.get("/get-allprojectIncharge",authenticateToken, adminCtrl.getProjectIncharges)
+router.get('/get-projectInchargeById/:id', authenticateToken, adminCtrl.getProjectInchargeById);
+//for add update delete get Plaza
+router.post("/add-plaza", authenticateToken, proejctinchargeController.createPlaza );
+router.put("/update-plaza/:id", authenticateToken, proejctinchargeController.updatePlaza);
+router.get("/get-allplaza", authenticateToken, proejctinchargeController.getPlazas);
+router.get('get-plazaByid/:id', authenticateToken, proejctinchargeController.getPlazaById);
+router.delete('delete-plaza/:id', authenticateToken, proejctinchargeController.deletePlaza);
+router.post("/get-plazaNames", authenticateToken, proejctinchargeController.getPlazaNamesByIds)
+
+//add issue updateIssue delete issue
+router.post("/add-issue", authenticateToken , engineerController.addIssue );
+router.get("/get-allIssues", authenticateToken, engineerController.getAllIssues);
+router.get("/get-allIssuesById", authenticateToken, engineerController.getAllIssuesById)
+router.post('/resolve-issue', authenticateToken, adminCtrl.resoleIssue)
+
+
+
+
+//add siteEngineer , delete ,update 
+router.post("/add-engineer", authenticateToken, proejctinchargeController.addSiteEngineer);
+router.get("/get-allSiteEngineers", authenticateToken, proejctinchargeController.getSiteEngineers);
+router.post("/get-nameById", authenticateToken, proejctinchargeController.getEngineersNamesByIds);
+router.delete("/delete-engineer/:username", authenticateToken, proejctinchargeController.deleteSiteEngineer)
+router.get('/get-activeEngineers', authenticateToken, proejctinchargeController.getActiveEnginrres)
+export default router;
