@@ -14,7 +14,8 @@ const dotenvVar= {
    ADMIN_USERNAME: process.env.ADMIN_USERNAME,
     ADMIN_EMAIL: process.env.ADMIN_EMAIL,
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
-    REFRESH_SECRET: process.env.REFRESH_SECRET
+    REFRESH_SECRET: process.env.REFRESH_SECRET,
+    NODE_ENV: process.env.NODE_ENV
 }
 
 const init= async ()=>{
