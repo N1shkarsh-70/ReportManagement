@@ -28,42 +28,29 @@ const initialState = {
 export const loginUser = createAsyncThunk("auth/loginUser", async (credentials, { rejectWithValue }) => {
   try {
     const { data } = await axiosInstance.post("/user/login", credentials);
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
-    localStorage.setItem("role", JSON.stringify(data.role));
-    return data;
+    return data; // Return data directly; reducer will handle storage updates
   } catch (error) {
     return rejectWithValue(error.response?.data?.message || "Login failed");
   }
 });
 
-export const refreshAccessToken = createAsyncThunk(
-  "auth/refreshAccessToken",
-  async (_, { rejectWithValue }) => {
-    try {
-      console.log(document.cookie)
-      const response = await axiosInstance.post(REFRESH_URL, {}, { withCredentials: true });
+// *Refresh Token Thunk*
+export const refreshAccessToken = createAsyncThunk("auth/refreshAccessToken", async (_, { rejectWithValue }) => {
+  try {
+    const response = await axiosInstance.post(REFRESH_URL, {}, { withCredentials: true });
 
-      console.log("API Response:", response.data);
-
-      if (!response.data || !response.data.accesstoken) {
-        throw new Error("Invalid token response");
-      }
-
-      localStorage.setItem("token", response.data.accesstoken);
-      return response.data.accesstoken;
-    } catch (error) {
-      console.error("Token refresh failed:", error);
-      
-      // Only clear local storage if the error is due to an invalid token, not network errors
-      if (error.response?.status === 401) {
-        localStorage.clear();
-      }
-
-      return rejectWithValue("Session expired, please login again");
+    if (!response.data || !response.data.accesstoken) {
+      throw new Error("Invalid token response");
     }
+
+    return response.data.accesstoken;
+  } catch (error) {
+    if (error.response?.status === 401) {
+      return rejectWithValue("Session expired, please log in again");
+    }
+    return rejectWithValue("Failed to refresh token");
   }
-);
+});
 
 // *Auth Slice*
 const authSlice = createSlice({
@@ -83,15 +70,21 @@ const authSlice = createSlice({
         state.token = payload.token;
         state.isAuthenticated = true;
         state.error = null;
+
+        // Save to localStorage
+        localStorage.setItem("token", payload.token);
+        localStorage.setItem("user", JSON.stringify(payload.user));
+        localStorage.setItem("role", JSON.stringify(payload.role));
       })
       .addCase(loginUser.rejected, (state, { payload }) => {
         state.error = payload;
       })
       .addCase(refreshAccessToken.fulfilled, (state, { payload }) => {
-        console.log(payload);
-        
         state.token = payload;
         state.isAuthenticated = true;
+
+        // Save refreshed token
+        localStorage.setItem("token", payload);
       })
       .addCase(refreshAccessToken.rejected, (state, { payload }) => {
         state.token = null;
