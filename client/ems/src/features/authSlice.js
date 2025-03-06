@@ -41,6 +41,7 @@ export const refreshAccessToken = createAsyncThunk(
   "auth/refreshAccessToken",
   async (_, { rejectWithValue }) => {
     try {
+      console.log(document.cookie)
       const response = await axiosInstance.post(REFRESH_URL, {}, { withCredentials: true });
 
       console.log("API Response:", response.data);
