@@ -71,8 +71,9 @@ const authController= {
     
             res.cookie("refreshToken", refreshToken, {
                 httpOnly: true,  
-                secure: false,    
+                secure: process.env.NODE_ENV === "production",    
                 maxAge: 7 * 24 * 60 * 60 * 1000, 
+                sameSite: "none",
             });
             console.log("Set-Cookie header sent:", refreshToken); // Debug log
      
