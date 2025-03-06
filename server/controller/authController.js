@@ -73,7 +73,7 @@ const authController= {
                 httpOnly: true,  
                 secure: false,    
                 maxAge: 7 * 24 * 60 * 60 * 1000, 
-                sameSite: "None",
+                sameSite: "Lax",
                 domain : "82.29.162.1",
                 path: "/"
             });
