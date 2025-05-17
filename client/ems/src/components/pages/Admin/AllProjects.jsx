@@ -1,42 +1,32 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getallProjects, getProjectByInchargeId } from "../../features/projectSlice";
-import { getPlazaNamesByIds } from "../../features/plazaSlice";
+import { getallProjects, getProjectByInchargeId } from "../../../features/projectSlice";
 
 const ProjectsTable = () => {
   const dispatch = useDispatch();
   const [selectedPlazas, setSelectedPlazas] = useState(null); // State for modal
-  const [loadingPlazas, setLoadingPlazas] = useState(false);
-  
+
   const { role } = useSelector((state) => state.auth);
-
-
-  const { projects, plazas, status, error } = useSelector((state) => state.project || { projects: [], status: "idle", error: null });
-  const { plazaNames } = useSelector((state) => state.plaza || { plazaNames: {} }); // Fetch from plazaSlice
+  const { projects, status, error } = useSelector((state) => state.project || { projects: [], status: "idle", error: null });
 
   useEffect(() => {
-    if(role==="projectIncharge"){
-      dispatch(getProjectByInchargeId())
-    }else{
+    if (role === "projectIncharge") {
+      dispatch(getProjectByInchargeId());
+    } else {
       dispatch(getallProjects());
     }
-    
-  }, [dispatch]);
+  }, [dispatch, role]);
+
   // Debugging Logs
   console.log("Projects Data:", projects);
-  console.log("Plaza Names:", plazaNames);
 
-  const handleViewPlazas = async (plazaIds) => {
-    if (!plazaIds || plazaIds.length === 0) return;
-    setLoadingPlazas(true);
-    await dispatch(getPlazaNamesByIds(plazaIds));
-    setSelectedPlazas(plazaIds);
-    setLoadingPlazas(false);
+  const handleViewPlazas = (plazas) => {
+    if (!plazas || plazas.length === 0) return;
+    setSelectedPlazas(plazas);
   };
-console.log(projects);
 
   if (status === "loading") return <p className="text-center mt-20">Loading...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (error) return <p>Error: {error?.message}</p>;
 
   return (
     <div className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 min-h-screen">
@@ -49,7 +39,7 @@ console.log(projects);
           {status === "loading" ? (
             <p className="text-center py-6 text-lg text-gray-600">Loading projects...</p>
           ) : error ? (
-            <p className="text-center py-6 text-lg text-red-600">Error: {error}</p>
+            <p className="text-center py-6 text-lg text-red-600">Error: {error?.message}</p>
           ) : (
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -79,9 +69,8 @@ console.log(projects);
                         <button
                           onClick={() => handleViewPlazas(project.plazas)}
                           className="px-4 py-2 text-sm text-white bg-blue-500 hover:bg-blue-600 rounded-md shadow-md"
-                          disabled={loadingPlazas}
                         >
-                          {loadingPlazas ? "Loading..." : "View Plazas"}
+                          View Plazas
                         </button>
                       </td>
                     </tr>
@@ -104,9 +93,8 @@ console.log(projects);
             <h3 className="text-lg font-bold mb-4">Plaza Names</h3>
             {selectedPlazas.length > 0 ? (
               <ul className="list-disc pl-4 space-y-2">
-                {selectedPlazas.map((plazaId, i) => (
-                  <li key={i} className="text-gray-700">{plazaNames[plazaId] || "Fetching..."}</li> 
-                  // Fixed: Using correct plazaNames object
+                {selectedPlazas.map((plaza, i) => (
+                  <li key={i} className="text-gray-700">{plaza.plazaName || "Fetching..."}</li>
                 ))}
               </ul>
             ) : (

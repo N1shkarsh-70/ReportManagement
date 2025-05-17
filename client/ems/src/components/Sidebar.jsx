@@ -1,26 +1,27 @@
 import { useState } from "react";
-import { FaBars, FaChevronDown, FaChevronUp, FaTachometerAlt, FaProjectDiagram, FaUserShield, FaUsers, FaBug, FaHardHat, FaLandmark } from "react-icons/fa";
+import { FaBars, FaChevronDown, FaChevronUp, FaTachometerAlt, FaProjectDiagram, FaUserShield, FaUsers, FaBug, FaHardHat, FaLandmark , FaTimes} from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
 const Sidebar = () => {
-  const [isOpen, setIsOpen] = useState(true);
   const [openMenu, setOpenMenu] = useState(null);
-  const { role } = useSelector((state) => state.auth);
-
+  const [isOpen, setIsOpen] = useState(true);
+  const { role, isEngineerAlso} = useSelector((state) => state.auth);
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
+    setOpenMenu(null);
   };
-
   const toggleSubmenu = (menu) => {
     setOpenMenu(openMenu === menu ? null : menu);
   };
+console.log(role);
 
   const roleBasedMenu = {
     SuperAdmin: ["Dashboard", "Projects", "Project Incharge", "Admin", "Issue", "Site Engineers", "Plaza"],
-    Admin: ["Dashboard", "Projects", "Admin","Project Incharge", "Issue", "Site Engineers", "Plaza"],
-    projectIncharge: ["Dashboard", "Projects", "Issue"],
-    siteEngineer: ["Dashboard", "Issue", "Track Issue"],
+    Admin: ["Dashboard", "Projects", "Admin", "Project Incharge", "Issue", "Site Engineers", "Plaza", "Generate Report"],
+    project_incharge: ["Dashboard", "Projects", "Issue"],
+    site_engineer: ["Dashboard", "Issue", "Track Issue"],
+    plaza_incharge: ["Dashboard", "Issue", "Plaza Issues"]
   };
 
   const menuItems = [
@@ -32,7 +33,15 @@ const Sidebar = () => {
         { name: "All Projects", path: "/all-projects" },
         { name: "Add Project", path: "/add-project" },
         { name: "Manage Projects", path: "/manage-projects" },
-      ],
+        {name: "My project", path: "/get-projectById"}
+      ].filter(subItem => {
+        if (role === "project_incharge" ) {
+          return subItem.name === "My project" ;
+        }
+        if(role === "Admin"){
+          return subItem.name === "Add Project" || subItem.name==="Manage Projects"
+        }
+      })
     },
     {
       title: "Project Incharge",
@@ -41,6 +50,11 @@ const Sidebar = () => {
         { name: "Add Incharge", path: "/add-incharge" },
         { name: "Manage Incharges", path: "/manage-incharge" },
       ],
+    },
+
+    {title: "Generate Report",
+      icon: <FaUserShield/>,
+      path: "/generate-report"
     },
     {
       title: "Admin",
@@ -56,15 +70,33 @@ const Sidebar = () => {
       icon: <FaBug />,
       subItems: [
         { name: "Create Issue", path: "/issue-generate" },
-        { name: "Track Issue", path: "/all-issuesById" },
+        { name: "Track Issue", path: role=== "project_incharge"?"/manage-ProjectIssues": "/all-issuesById" },
         { name: "Manage Issue", path: "/manage-issue" },
+        {name: "All Issues", path: '/all-issues'},
+        {name: "Project Issues" , path: '/all-issues'},
+        {name: "Plaza Issues", path: "/all-issuesById"}
       ].filter(subItem => {
-        if (role === "SuperAdmin" || role === "Admin" ) {
-          return subItem.name === "Manage Issue";
+        if (role === "SuperAdmin" || role === "Admin") {
+          return subItem.name === "Manage Issue" || subItem.name=== "All Issues";
         }
-        if (role === "siteEngineer") {
+        if (role === "site_engineer") {
           return subItem.name === "Create Issue" || subItem.name === "Track Issue";
         }
+
+        if(role=== "plaza_incharge"){
+          return subItem.name === "Plaza Issues" || subItem.name=== "Create Issue" || subItem.name=== "All Issues"
+        }
+        if (role === "project_incharge") {
+          if(isEngineerAlso=== true){
+            return subItem.name === "Create Issue" || subItem.name === "Track Issue" || subItem.name== "Project Issues" ;
+          }
+          else{
+            return subItem.name === "Project Issues" || subItem.name=== "Track Issue";
+          }
+         
+          
+        }
+        
         return false;
       }),
     },
@@ -87,9 +119,7 @@ const Sidebar = () => {
     },
   ];
 
-  const filteredMenuItems = menuItems.filter((item) =>
-    roleBasedMenu[role]?.includes(item.title)
-  );
+  const filteredMenuItems = menuItems.filter((item) => roleBasedMenu[role]?.includes(item.title));
 
   return (
     <div className="flex">
@@ -131,7 +161,7 @@ const Sidebar = () => {
                   to={item.path}
                   className="flex items-center px-4 py-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition duration-300 shadow-md"
                 >
-                  {item.icon} {isOpen && <span className="ml-3">{item.title}</span>}
+                  {item.icon}{isOpen && <span className="ml-3">{item.title}</span>}
                 </Link>
               )}
             </li>
@@ -140,6 +170,6 @@ const Sidebar = () => {
       </div>
     </div>
   );
-};
+  };
 
 export default Sidebar;

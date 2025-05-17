@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "../components/axiosInstance.js";
 import { jwtDecode } from "jwt-decode";
 
-const REFRESH_URL = "/user/refresh-token";
+const REFRESH_URL = "api/user/refresh-token";
 
 // Check if the token is expired
 const isTokenExpired = (token) => {
@@ -19,15 +19,18 @@ const storedToken = localStorage.getItem("token");
 const initialState = {
   user: JSON.parse(localStorage.getItem("user")) || null,
   role: JSON.parse(localStorage.getItem("role")) || null,
+  isEngineerAlso: JSON.parse(localStorage.getItem("isEngineerAlso")) || null,
   token: storedToken || null,
   isAuthenticated: storedToken ? !isTokenExpired(storedToken) : false,
   error: null,
 };
 
 // *Login Thunk*
-export const loginUser = createAsyncThunk("auth/loginUser", async (credentials, { rejectWithValue }) => {
+export const loginUser = createAsyncThunk("api/auth/loginUser", async (credentials, { rejectWithValue }) => {
   try {
-    const { data } = await axiosInstance.post("/user/login", credentials);
+    const { data } = await axiosInstance.post("api/user/login", credentials);
+    console.log(data);
+    
     return data; // Return data directly; reducer will handle storage updates
   } catch (error) {
     return rejectWithValue(error.response?.data?.message || "Login failed");
@@ -68,6 +71,7 @@ const authSlice = createSlice({
         state.user = payload.user;
         state.role = payload.role;
         state.token = payload.token;
+        state.isEngineerAlso= payload.isEngineerAlso
         state.isAuthenticated = true;
         state.error = null;
 
@@ -75,6 +79,7 @@ const authSlice = createSlice({
         localStorage.setItem("token", payload.token);
         localStorage.setItem("user", JSON.stringify(payload.user));
         localStorage.setItem("role", JSON.stringify(payload.role));
+       payload.isEngineerAlso? localStorage.setItem("isEngineerAlso", JSON.stringify(payload.isEngineerAlso)): localStorage.setItem("isEngineerAlso", null)
       })
       .addCase(loginUser.rejected, (state, { payload }) => {
         state.error = payload;

@@ -5,16 +5,40 @@ import axios from "axios";
 export const fetchPlazas = createAsyncThunk("plaza/fetchPlazas", async (_, { getState, rejectWithValue }) => {
     try {
       const token = getState().auth.token; // Get token from auth state
-      const response = await axios.get("http://82.29.162.1:3000/superadmin/get-allplaza", {
+      const response = await axios.get("http://192.168.29.221:3000/superadmin/get-allplaza", {
         headers: { Authorization: `Bearer ${token}` }, // Attach token in headers
       });
-      console.log(response);
+      console.log('plazas:"',response);
       
       return response.data;
     } catch (error) {
+      console.log(error);
+      
       return rejectWithValue(error.response?.data?.message || "Failed to fetch plazas");
     }
   });
+
+
+  export const fetchPlazasByProjectId = createAsyncThunk("plaza/fetchPlazasByProjectId", async (projectId, { getState, rejectWithValue }) => {
+    try {
+      console.log("hello from function");
+      
+      const token = getState().auth.token; // Get token from auth state
+      const response = await axios.get(`http://192.168.29.221:3000/superadmin/get-plazasByProject/${projectId}`, {
+        headers: { Authorization: `Bearer ${token}` }, // Attach token in headers
+      });
+      console.log('plazas:"',response.data);
+      
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch plazas by id");
+    }
+  });
+
+
+
 
 // Fetch plaza names by IDs
 export const getPlazaNamesByIds = createAsyncThunk("admin/getPlazaNames", async (plazaIds, { rejectWithValue, getState }) => {
@@ -24,20 +48,22 @@ export const getPlazaNamesByIds = createAsyncThunk("admin/getPlazaNames", async 
     // Ensure it's an actual array
     const formattedPlazaIds = Array.isArray(plazaIds) ? [...plazaIds] : [];
     
-    const response = await axios.post("http://82.29.162.1:3000/superadmin/get-plazaNames", {plazaIds: formattedPlazaIds}  , {
+    const response = await axios.post("http://192.168.29.221:3000/superadmin/get-plazaNames", {plazaIds: formattedPlazaIds}  , {
       headers: { Authorization: `Bearer ${token}` },
     });
     console.log(response);
     
     return response.data.plazas; // Assuming the API returns { "plazas": [{ _id, name }, ...] }
   } catch (err) {
+    console.log(err);
+    
     return rejectWithValue(err.response?.data || "Failed to fetch plaza names");
   }
 });
   export const addPlaza= createAsyncThunk("plaza/addPlaza", async (payload, {rejectWithValue,getState})=>{
     try{
     const token = getState().auth.token; // Get token from auth state
-    const response= await axios.post("http://82.29.162.1:3000/superadmin/add-plaza", payload,{
+    const response= await axios.post("http://192.168.29.221:3000/superadmin/add-plaza", payload,{
       headers: { Authorization: `Bearer ${token}` }, // Attach token in headers
     })
 
@@ -46,17 +72,19 @@ export const getPlazaNamesByIds = createAsyncThunk("admin/getPlazaNames", async 
     
   }
     catch(err){
+      console.log(err);
+      
       return rejectWithValue(err.response?.data?.message)
     }
   })
 
 export const deletePlaza = createAsyncThunk("plaza/deletePlaza", async (id) => {
-  await axios.delete(`http://82.29.162.1:3000/superadmin/delete-plaza/${id}`);
+  await axios.delete(`http://192.168.29.221:3000/superadmin/delete-plaza/${id}`);
   return id;
 });
 
 export const updatePlaza = createAsyncThunk("plaza/updatePlaza", async ({ id, updatedData }) => {
-  const response = await axios.put(`http://82.29.162.1:3000/superadmin/update-plaza/${id}`, updatedData);
+  const response = await axios.put(`http://192.168.29.221:3000/superadmin/update-plaza/${id}`, updatedData);
   return response.data;
 });
 
@@ -74,6 +102,9 @@ const plazaSlice = createSlice({
       state.status = "idle";
       state.error = null;
     },
+    clearError: (state) => {
+      state.error = null; // Reset the error state
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -82,7 +113,8 @@ const plazaSlice = createSlice({
       })
       .addCase(fetchPlazas.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.plazas = action.payload;
+        state.plazas = action.payload ||[];
+        console.log("Updated Plaza State:", state.plazas); // Debugging
       })
       .addCase(fetchPlazas.rejected, (state, action) => {
         state.status = "failed";
@@ -98,7 +130,8 @@ const plazaSlice = createSlice({
         }
       }).addCase(addPlaza.fulfilled, (state, action) => {
         state.status = "succeeded"; // Ensure status updates
-        state.plazas.push(action.payload); // Directly push to array
+        state.plazas.push(action.payload);
+        state.error= null; // Directly push to array
       })
       .addCase(addPlaza.rejected, (state, action) => {
         state.status = "failed";
@@ -125,9 +158,23 @@ const plazaSlice = createSlice({
         .addCase(getPlazaNamesByIds.rejected, (state, action) => {
           state.status = "failed";
           state.error = action.payload || "Failed to fetch plaza names";
-        });
+        }).addCase(fetchPlazasByProjectId.pending,(state)=>{state.status= "loading"})
+        .addCase(fetchPlazasByProjectId.fulfilled, (state, action)=>{
+          state.status= "succeeded"
+
+          if (Array.isArray(action.payload)) {
+           console.log(action.payload);
+           
+          } else {
+            console.error("Unexpected payload format:", action.payload);
+          }
+        })
+        .addCase(fetchPlazasByProjectId.rejected,(state, action)=>{
+          state.status= "failed";
+          state.error= action.payload || "failed to fetch plaza names by id"
+        })
   },
 });
 
-export const { resetPlazaState } = plazaSlice.actions;
+export const { resetPlazaState, clearError } = plazaSlice.actions;
 export default plazaSlice.reducer;

@@ -2,45 +2,48 @@ import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { AiOutlineEye } from "react-icons/ai";
 import { ToastContainer, toast } from "react-toastify";
-import {  getPendingIssuesById, resolveIssue, getIssuesByPlazaId } from "../../features/issueSlice"; // Import resolveIssue action
+import { getProjectByInchargeId } from "../../features/projectSlice";
+import { getIssuesByProjectId, resolveIssue } from "../../features/issueSlice"; // Import resolveIssue action
 
-export default function EngineersIssues() {
+export default function AllProjectIssues() {
   const dispatch = useDispatch();
   const { allIssues: issues = [], status, error } = useSelector((state) => state.issue || {});
-  const role = useSelector((state) => state.auth.role);
+
   const [selectedIssue, setSelectedIssue] = useState(null);
   const [remarks, setRemarks] = useState({});
 
-  console.log(role);
+  useEffect(() => {
+    dispatch(getProjectByInchargeId());
+  }, [dispatch]);
   
+  const projectId = useSelector((state) => state.project?.projects?.[0]?._id); // safer access
 
   useEffect(() => {
-    if(role=== "plaza_incharge"){
-      dispatch(getIssuesByPlazaId())
+    if (projectId) {
+      dispatch(getIssuesByProjectId(projectId));
     }
-    else{
-    dispatch(getPendingIssuesById());
-    }
-  }, [dispatch]);
+  }, [projectId, dispatch]);
 
   // Handle input change for remarks
   const handleRemarkChange = (issueId, value) => {
     setRemarks((prev) => ({ ...prev, [issueId]: value }));
   };
 
-  // Dispatch resolveIssue action
   const handleSubmitRemark = (issueId) => {
     const remarkText = remarks[issueId];
     if (!remarkText) return alert("Please enter a remark before submitting.");
-
+  
     dispatch(resolveIssue({ issueId, remarks: remarkText }))
-     if(status === "succeeded"){
-      toast.success("issue resolved successfuly")
-     }
-     if(status=== "failed"){
-      toast.error(error)
-     }
+      .unwrap()
+      .then(() => {
+        toast.success("Issue resolved successfully");
+        setRemarks((prev) => ({ ...prev, [issueId]: "" })); // Clear input
+      })
+      .catch((err) => {
+        toast.error(err.message || "Failed to resolve issue");
+      });
   };
+  
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
@@ -48,7 +51,7 @@ export default function EngineersIssues() {
         <h2 className="text-2xl font-bold mb-4">Manage Issues</h2>
 
         {status === "loading" && <p className="text-center text-blue-600">Loading issues...</p>}
-        {error && <p className="text-center text-red-600">{error?.msg}</p>}
+        {error && <p className="text-center text-red-600">{error}</p>}
 
         <div className="overflow-x-auto">
           <table className="w-full border border-gray-300 rounded-lg overflow-hidden">
@@ -66,24 +69,24 @@ export default function EngineersIssues() {
             </thead>
             <tbody>
               {issues.length > 0 ? (
-                issues.filter((issue)=> issue.status=== "Pending").map((issue, index) => (
+                issues.filter((issue)=> issue.status==="Pending").map((issue, index) => (
                   <tr key={issue.issueId} className="border-b hover:bg-gray-100">
                     <td className="p-3">{index + 1}</td>
                     <td className="p-3">{issue?.issueId}</td>
                     <td className="p-3">{issue?.problemType}</td>
-                    <td className="p-3">{issue.description ? issue.description.split(" ").slice(0, 3).join(" ") + "..." : "No description"}</td>
+                    <td className="p-3">{issue?.description ? issue?.description.split(" ").slice(0, 3).join(" ") + "..." : "No description"}</td>
                     <td className="p-3">{issue?.plazaId?.plazaName}</td>
-                    <td className="p-3">{issue?.status}</td>
+                    <td className="p-3">{issue.status}</td>
                     <td className="p-3">
                       <input
                         type="text"
                         value={remarks[issue.issueId] || ""}
-                        onChange={(e) => handleRemarkChange(issue.issueId, e.target.value)}
+                        onChange={(e) => handleRemarkChange(issue?.issueId, e.target.value)}
                         className="border rounded p-2 w-full"
                         placeholder="Enter remarks"
                       />
                       <button
-                        onClick={() => handleSubmitRemark(issue.issueId)}
+                        onClick={() => handleSubmitRemark(issue?.issueId)}
                         className="bg-blue-500 text-white px-3 py-1 rounded mt-2 hover:bg-blue-700"
                       >
                         Submit
@@ -116,13 +119,13 @@ export default function EngineersIssues() {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md animate-fadeIn">
           <div className="bg-white p-6 rounded-2xl shadow-2xl w-96 border border-gray-200 relative">
             <h3 className="text-2xl font-semibold mb-3 text-gray-900">Issue Details</h3>
-            <p className="text-gray-700"><strong>Issue ID:</strong> {selectedIssue.issueId}</p>
-            <p className="text-gray-700"><strong>Issue Type:</strong> {selectedIssue.problemType}</p>
-            <p className="text-gray-700"><strong>Description:</strong> {selectedIssue.description}</p>
-            <p className="text-gray-700"><strong>Plaza Name:</strong> {selectedIssue.plazaId.plazaName}</p>
+            <p className="text-gray-700"><strong>Issue ID:</strong> {selectedIssue?.issueId}</p>
+            <p className="text-gray-700"><strong>Issue Type:</strong> {selectedIssue?.problemType}</p>
+            <p className="text-gray-700"><strong>Description:</strong> {selectedIssue?.description}</p>
+            <p className="text-gray-700"><strong>Plaza Name:</strong> {selectedIssue?.plazaId?.plazaName}</p>
             <p className="text-gray-700"><strong>Status:</strong> {selectedIssue.status}</p>
-            <p className="text-gray-700"><strong>Issue Time:</strong> {new Date(selectedIssue.issueTime).toLocaleString()}</p>
-            <p className="text-gray-700"><strong>Reported By:</strong> {selectedIssue.reportedBy?.username || "Unknown"}</p>
+            <p className="text-gray-700"><strong>Issue Time:</strong> {new Date(selectedIssue?.issueTime).toLocaleString()}</p>
+            <p className="text-gray-700"><strong>Reported By:</strong> {selectedIssue?.reportedBy?.username || "Unknown"}</p>
             <button
               onClick={() => setSelectedIssue(null)}
               className="mt-4 bg-gradient-to-r from-red-500 to-red-700 text-white px-4 py-2 rounded-lg hover:scale-105 transition-transform w-full"

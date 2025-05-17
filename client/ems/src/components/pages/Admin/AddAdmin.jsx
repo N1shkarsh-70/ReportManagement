@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FaUser, FaEnvelope, FaLock, FaMapMarkerAlt, FaCity, FaGlobe } from "react-icons/fa";
-import { addnewAdmin, getallAdmins } from "../../features/adminSlice";
+import { addnewAdmin, getallAdmins } from "../../../features/adminSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";

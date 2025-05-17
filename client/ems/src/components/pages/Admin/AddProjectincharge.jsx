@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addProjectIncharge } from "../../features/projectInchargeSlice";
-import { getallProjects } from "../../features/projectSlice";
+import { addProjectIncharge } from "../../../features/projectInchargeSlice";
+import { getallProjects } from "../../../features/projectSlice";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css"; // Ensure Toastify styles are included
 
@@ -12,6 +12,7 @@ const AddIncharge = () => {
     phoneNO: "", // Ensure this matches your backend schema
     username: "",
     password: "",
+    isEngineerAlso: "",
     email: "",
     assignedProject: "",
     address: {
@@ -33,20 +34,26 @@ const AddIncharge = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
   
+    // Convert string "true"/"false" to boolean
+    const parsedValue = value === 'true' ? true : value === 'false' ? false : value;
+  
     setFormData((prevState) => {
       if (name in prevState.address) {
         return {
           ...prevState,
-          address: { ...prevState.address, [name]: value },
+          address: { ...prevState.address, [name]: parsedValue },
         };
       }
-      return { ...prevState, [name]: value };
+      return { ...prevState, [name]: parsedValue };
     });
   };
   
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      console.log(formData);
+      
       const response = await dispatch(addProjectIncharge(formData)).unwrap();
       toast.success("Project Incharge added successfully!");
 
@@ -57,6 +64,7 @@ const AddIncharge = () => {
         phoneNO: "",
         username: "",
         password: "",
+        isEngineerAlso: "",
         email: "",
         assignedProject: "",
         address: { city: "", state: "", homeAddress: "" },
@@ -160,7 +168,7 @@ const AddIncharge = () => {
               value={formData.assignedProject}
               onChange={handleChange}
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-            
+
             >
               <option value="" disabled>
                 Select a project
@@ -172,6 +180,34 @@ const AddIncharge = () => {
               ))}
             </select>
           </div>
+
+
+
+
+          <div>
+            <label className="block text-gray-600 mb-1">IsEngineer</label>
+            <select
+              name="isEngineerAlso"
+              value={formData.isEngineerAlso}
+              onChange={handleChange}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            >
+              <option value="" disabled>
+                Select value
+              </option>
+              <option value="true">True</option>
+            </select>
+          </div>
+
+
+
+
+
+
+
+
+
+
 
           {/* City */}
           <div>

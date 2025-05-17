@@ -2,12 +2,62 @@ import Project from "../model/projectModel.js"; // Adjust the path accordingly
 import ProjectIncharge from "../model/projectEngineerModel.js";
 import mongoose from "mongoose";
 import authEssentials from "./index.js";
+import Plaza from "../model/plazaModel.js";
 import Admin from "../model/adminModel.js";
 import { dotenvVar } from "../config.js";
+import { genAttendancePdf } from "../utils/pdfgenerate.js";
+
 import Issue from "../model/issueModel.js";
+import { generatePDF } from "../utils/pdfgenerate.js";
+
+import { User, RoleHistory } from "../model/user.js";
 const adminCtrl= {
 
 //project create read update delete
+
+
+ 
+downloadattendancePdf: async (req, res) => {
+  try {
+    const filters = req.query;  // Extract filters from query params
+    console.log(filters);
+    
+    const pdfBuffer = await genAttendancePdf(filters);
+
+    res.writeHead(200, {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'attachment; filename="issues_report.pdf"',
+      'Content-Length': pdfBuffer.length,
+    });
+
+    res.end(pdfBuffer);
+  } catch (err) {
+    console.error("Error generating PDF:", err);
+    res.status(500).send('Error generating PDF');
+  }
+},
+downloadPdf: async (req, res) => {
+  try {
+    const filters = req.query;  // Extract filters from query params
+    console.log(filters);
+    
+    const pdfBuffer = await generatePDF(filters);
+
+    res.writeHead(200, {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'attachment; filename="issues_report.pdf"',
+      'Content-Length': pdfBuffer.length,
+    });
+
+    res.end(pdfBuffer);
+  } catch (err) {
+    console.error("Error generating PDF:", err);
+    res.status(500).send('Error generating PDF');
+  }
+},
+
+
+
 createProject: async (req, res) => {
     try {
         const { clientName, projectName, assignedTo, PIU_Name, location } = req.body;
@@ -45,8 +95,13 @@ createProject: async (req, res) => {
 // Get all projects
  getProjects : async (req, res) => {
     try {
-        const projects = await Project.find().populate("createdBy", "name email")
-        .populate("assignedTo");
+        const projects = await Project.find({isActive: true}).populate("createdBy", "name email")
+        .populate("assignedTo")
+        .populate("plazas");
+        console.log("projects");
+        
+        console.log(projects);
+        
         res.status(200).json(projects);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -140,10 +195,12 @@ deleteProject : async (req, res) => {
 // Create a new Project Incharge
 createProjectIncharge: async (req, res) => {
     try {
-        const { firstName, lastName, phoneNO, username, password, email, assignedProject, address } = req.body;
+        let { firstName, lastName, phoneNO, username, password, email, assignedProject, isEngineerAlso, address } = req.body;
         
         
-        // Logging (for debugging)
+        if (isEngineerAlso === "") {
+            isEngineerAlso = undefined;
+          }
         console.log(req.body);
         
         // Validation
@@ -155,11 +212,15 @@ createProjectIncharge: async (req, res) => {
         const hash = await authEssentials.createHash(password, dotenvVar.SALT);
 
         // Create Project Incharge
+        console.log(isEngineerAlso);
+        console.log(req.user.user);
+        
         const projectIncharge = new ProjectIncharge({
             firstName,
             lastName,
             phoneNO,
             username,
+            isEngineerAlso,
             password: hash,
             email,
             assignedProject,
@@ -169,6 +230,9 @@ createProjectIncharge: async (req, res) => {
         });
 
         await projectIncharge.save();
+        if(assignedProject){
+            await Project.findByIdAndUpdate(assignedProject, {assignedTo: assignedProject})
+        }
         res.status(201).json({ message: "Project Incharge created successfully", projectIncharge });
 
     } catch (error) {
@@ -177,7 +241,7 @@ createProjectIncharge: async (req, res) => {
 },
 getProjectIncharges: async (req, res) => {
     try {
-        const projectIncharges = await ProjectIncharge.find()
+        const projectIncharges = await ProjectIncharge.find({isActive: true})
             .populate("assignedProject", "projectName")
             .populate("assignedBy", "firstName");
 
@@ -244,36 +308,166 @@ getProjectIncharges: async (req, res) => {
 
 //resolve issue
 
-resoleIssue: async (req, res) => {
+resolveIssue: async (req, res) => {
     try {
-        const { remarks, issueId } = req.body;
-
-        if (!remarks || !issueId) {
-            return res.status(400).json({ message: "Details are missing" });
-        }
-
-        const issueExist = await Issue.findOne({ issueId: issueId });
-
-        if (!issueExist) {
-            return res.status(404).json({ message: "Issue not found" });
-        }
-
-        // Update issue with resolution details
-        issueExist.remarks = remarks;
-        issueExist.rectifiedBy = req.user.user; // Assuming req.user contains authenticated user info
-        issueExist.rectifiedTime = new Date(); // Store current timestamp
-        issueExist.status = "Resolved"; // Mark issue as resolved
-
-        await issueExist.save(); // Save the updated issue
-  // Remove issue from Admin and Project Incharge manageIssues array
-  await Admin.updateMany({}, { $pull: { manageIssues: issueExist._id } });
-        return res.status(200).json({ message: "Issue resolved successfully", issue: issueExist });
-
+      const { remarks, issueId } = req.body;
+  
+      if (!remarks || !issueId) {
+        return res.status(400).json({ message: "Details are missing" });
+      }
+  
+      const issueExist = await Issue.findOne({ issueId });
+  
+      if (!issueExist) {
+        return res.status(404).json({ message: "Issue not found" });
+      }
+  
+      // Update issue with resolution details
+// Determine and assign the role model properly
+if (req.user.role === "Admin") {
+    issueExist.rectifiedByModel = "Admin";
+  } else if (req.user.role === "project_incharge") {
+    issueExist.rectifiedByModel = "User";
+  } else {
+    issueExist.rectifiedByModel = "User"; // includes both site_engineer and plaza_incharge
+  }
+  issueExist.remarks = remarks;
+  issueExist.rectifiedBy = req.user.user; // Assuming req.user contains authenticated user info
+issueExist.rectifiedTime = new Date();
+issueExist.status = "Resolved"; // Set status to Resolved
+  
+      await issueExist.save();
+  
+      // Remove issue from manageIssues arrays if needed
+      await Admin.updateMany({}, { $pull: { manageIssues: issueExist._id } });
+      
+  
+      return res.status(200).json({ message: "Issue resolved successfully", issue: issueExist });
     } catch (err) {
-        console.error(err);
-        return res.status(500).json({ message: "Internal Server Error" });
+      console.error(err);
+      return res.status(500).json({ message: "Internal Server Error" });
     }
-}
+  },
+
+  // controllers/userController.js
+ createUser : async (req, res) => {
+    try {
+      const { firstName, lastName, phoneNO, username, password, email, address, assignedBy } = req.body;
+  console.log(assignedBy);
+  console.log(req.user.user);
+  
+  
+  const hash = await authEssentials.createHash(password);
+      const user = await User.create({
+        firstName,
+        lastName,
+        phoneNO,
+        username,
+        password: hash,
+        email,
+        address,
+        currentRole: "site_engineer", // default role
+        roleHistory: [{
+          role: "site_engineer",
+          assignedEntity: req.body.assignedPlaza, // optional
+          assignedEntityType: "Plaza",
+          from: new Date()
+        }],
+        assignedBy: req.user.user,
+        assignedByModel: req.user.role
+      });
+  
+      res.status(201).json({ message: "User created", user });
+    } catch (error) {
+        console.log(error);
+        
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  // Controller function to change the role of a user and create a role history entry
+  changeRoleAndCreateHistory: async (req, res) => {
+    try {
+      const { userId, assignedEntityId, newRole, assignedEntityType, changedBy } = req.body;
+  
+      // Validate roles and types
+      if (!["site_engineer", "project_incharge", "plaza_incharge"].includes(newRole)) {
+        return res.status(400).json({ message: "Invalid role specified." });
+      }
+      if (!["Plaza", "Project"].includes(assignedEntityType)) {
+        return res.status(400).json({ message: "Invalid assigned entity type." });
+      }
+  
+      // Fetch the assigned entity (Plaza or Project)
+      const assignedEntity = assignedEntityType === "Plaza"
+        ? await Plaza.findById(assignedEntityId)
+        : await Project.findById(assignedEntityId);
+  
+      if (!assignedEntity) {
+        return res.status(404).json({ message: `${assignedEntityType} not found.` });
+      }
+  
+      // Fetch the user to update
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found." });
+      }
+  
+      const currentDate = new Date();
+  
+      // Close the current role in roleHistory if exists
+      const lastHistory = user.roleHistory.find(h => !h.to);
+      if (lastHistory) {
+        lastHistory.to = currentDate;
+      }
+  
+      // Add new role history
+      user.roleHistory.push({
+        role: newRole,
+        assignedEntity: assignedEntity._id,
+        assignedEntityType,
+        from: currentDate,
+        to: null
+      });
+      if(assignedEntityType=== "Project"){
+        await Project.findByIdAndUpdate(assignedEntityId, {assignedTo: user._id})
+      }
+      else{
+        await Plaza.findByIdAndUpdate(assignedEntityId, { assignedTo: user._id });
+      }
+  
+      // Update current role
+      user.currentRole = newRole;
+  
+      await user.save();
+  
+      return res.status(200).json({ message: "Role updated and history recorded.", user });
+  
+    } catch (error) {
+      console.error("Error changing role and creating role history:", error);
+      return res.status(500).json({ message: "An error occurred while changing the role." });
+    }
+  },
+
+  getAllusers: async(req, res)=>{
+
+    try{
+
+      const users= await User.find()
+      if(!users || users.length===0){
+        return  res.status(400).json({message: "no users"})
+      }
+
+      res.status(200).json({message:"founded", users})
+    }catch(err){
+
+      console.log(err.message);
+      return res.status(500).json({message: "internal server error"})
+      
+    }
+  }
+  
+  
 
 
 }

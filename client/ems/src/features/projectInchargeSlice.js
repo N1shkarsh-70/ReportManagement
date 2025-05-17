@@ -6,7 +6,7 @@ import { getallactiveAdmins } from "./adminSlice";
 export const getallProjectIncharge = createAsyncThunk("admin/getAllProjectIncharge", async (_, {rejectWithValue, getState}) => {
     try{
         const token = getState().auth.token; // Get token from auth state
-  const response = await axios.get("http://82.29.162.1:3000/superadmin/get-allprojectIncharge",{
+  const response = await axios.get("http://192.168.29.221:3000/superadmin/get-allprojectIncharge",{
     headers: { Authorization: `Bearer ${token}` }, // Attach token in headers
   });
   console.log(response);
@@ -20,7 +20,7 @@ export const getallProjectIncharge = createAsyncThunk("admin/getAllProjectInchar
   export const addProjectIncharge = createAsyncThunk("admin/addProjectIncharge", async (payload, {rejectWithValue, getState}) => {
     try{
         const token= getState().auth.token
-  const response = await axios.post("http://82.29.162.1:3000/superadmin/add-projectIncharge", payload,{
+  const response = await axios.post("http://192.168.29.221:3000/superadmin/add-projectIncharge", payload,{
     headers: {Authorization: `Bearer ${token}`},
   });
   console.log(response);
@@ -28,6 +28,20 @@ export const getallProjectIncharge = createAsyncThunk("admin/getAllProjectInchar
   return response.data;
      }catch(err){console.log(err);
         return rejectWithValue(err.response?.data || "Failed to add Incharge");
+     } // ✅ Must return data
+  });
+
+  export const changeRole = createAsyncThunk("admin/changeRole", async (payload, {rejectWithValue, getState}) => {
+    try{
+        const token= getState().auth.token
+  const response = await axios.post("http://192.168.29.221:3000/superadmin/changeRole", payload,{
+    headers: {Authorization: `Bearer ${token}`},
+  });
+  console.log(response);
+  
+  return response.data;
+     }catch(err){console.log(err);
+        return rejectWithValue(err.response?.data || "Failed to changeRole");
      } // ✅ Must return data
   });
 

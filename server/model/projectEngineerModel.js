@@ -6,6 +6,10 @@ const projectInchargeSchema = new mongoose.Schema({
     phoneNO: { type: Number, required: true, unique: true },
     isActive: { type: Boolean, default: true },  // ✅ Fixed field name
     role: { type: String, default: "projectIncharge" },
+    isEngineerAlso: {
+        type: Boolean,
+        default : false
+    },
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     email: { type: String, required: true, unique: true },

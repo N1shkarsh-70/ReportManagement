@@ -1,7 +1,7 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addPlaza } from "../../features/plazaSlice";
-import { getallProjects } from "../../features/projectSlice";
+import { addPlaza, fetchPlazas, clearError } from "../../../features/plazaSlice";
+import { getallProjects } from "../../../features/projectSlice";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -15,34 +15,34 @@ const AddPlaza = () => {
   const { projects = [], status: projectStatus } = useSelector((state) => state.project || {});
   const { status: plazaStatus, error } = useSelector((state) => state.plaza || {});
 
-  const prevStatus = useRef(plazaStatus); // Store previous status
-
   useEffect(() => {
     if (projectStatus === "idle") {
       dispatch(getallProjects());
     }
   }, [projectStatus, dispatch]);
 
-  useEffect(() => {
-    if (prevStatus.current !== plazaStatus) {
-      if (plazaStatus === "succeeded") {
-        toast.success("Plaza added successfully!");
-        setFormData({ plazaName: "", project: "" }); // Clear form
-      }
-      if (plazaStatus === "failed") {
-        toast.error(error || "Failed to add plaza");
-      }
-    }
-    prevStatus.current = plazaStatus; // Update previous status after checking
-  }, [plazaStatus, error]);
-
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(addPlaza(formData));
+    
+    try {
+      const resultAction = await dispatch(addPlaza(formData));
+      
+      if (addPlaza.fulfilled.match(resultAction)) {
+        toast.success("Plaza added successfully!");
+        setFormData({ plazaName: "", project: "" });
+        dispatch(fetchPlazas());
+        
+      } else {
+        throw new Error(resultAction.payload || "Failed to add plaza");
+      }
+    } catch (err) {
+      toast.error(err.message || "An error occurred while adding the plaza");
+      dispatch(clearError())
+    }
   };
 
   return (
@@ -96,8 +96,8 @@ const AddPlaza = () => {
             {plazaStatus === "loading" ? "Submitting..." : "Submit"}
           </button>
         </form>
-        <ToastContainer />
       </div>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar closeOnClick pauseOnHover draggable />
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchPlazas } from "../../features/plazaSlice.js";
-import { fetchSiteEngineers, addSiteEngineer } from "../../features/siteEngineer.js"; // Import addEngineer action
+import { fetchPlazas } from "../../../features/plazaSlice.js";
+import { fetchSiteEngineers, addSiteEngineer } from "../../../features/siteEngineer.js"; // Import addEngineer action
 import { toast, ToastContainer } from "react-toastify";
 
 export default function AddSiteEngineer() {
@@ -111,7 +111,7 @@ const InputField = ({ type = "text", name, placeholder, className, onChange }) =
   />
 );
 
-const CustomSelect = ({ label, options = [], selected, onChange }) => {
+export const CustomSelect = ({ label, options = [], selected, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (

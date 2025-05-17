@@ -4,6 +4,7 @@ import adminCtrl from "../controller/adminController.js";
 import authenticateToken from "../middeleware/authMiddeleware.js";
 import proejctinchargeController from "../controller/projectInchargeController.js";
 import engineerController from "../controller/SiteEngineerController.js";
+import countController from "../controller/common/countController.js";
 
 const router= express.Router();
 
@@ -36,20 +37,36 @@ router.get("/get-allplaza", authenticateToken, proejctinchargeController.getPlaz
 router.get('get-plazaByid/:id', authenticateToken, proejctinchargeController.getPlazaById);
 router.delete('delete-plaza/:id', authenticateToken, proejctinchargeController.deletePlaza);
 router.post("/get-plazaNames", authenticateToken, proejctinchargeController.getPlazaNamesByIds)
+router.get('/get-plazasByProject/:projectId', authenticateToken, proejctinchargeController.getPlazasByprojectId)
 
 //add issue updateIssue delete issue
 router.post("/add-issue", authenticateToken , engineerController.addIssue );
-router.get("/get-allIssues", authenticateToken, engineerController.getAllIssues);
-router.get("/get-allIssuesById", authenticateToken, engineerController.getAllIssuesById)
-router.post('/resolve-issue', authenticateToken, adminCtrl.resoleIssue)
+router.get("/get-allPendingIssues", authenticateToken, engineerController.getAllPendingIssues);
+router.get("/get-allPendingIssuesById", authenticateToken, engineerController.getAllIssuesById)
+router.get('/get-allIssues',authenticateToken, engineerController.getAllIssues);
+router.get("/get-projectIssues/:projectId", authenticateToken, proejctinchargeController.getIssuesByProjectId)
+router.post('/resolve-issue', authenticateToken, adminCtrl.resolveIssue)
+router.get('/get-issuesByPlazaId', authenticateToken, engineerController.getIssuesByPlazaId)
 
 
 
 
 //add siteEngineer , delete ,update 
-router.post("/add-engineer", authenticateToken, proejctinchargeController.addSiteEngineer);
+router.post("/add-engineer", authenticateToken, adminCtrl.createUser);
 router.get("/get-allSiteEngineers", authenticateToken, proejctinchargeController.getSiteEngineers);
 router.post("/get-nameById", authenticateToken, proejctinchargeController.getEngineersNamesByIds);
 router.delete("/delete-engineer/:username", authenticateToken, proejctinchargeController.deleteSiteEngineer)
 router.get('/get-activeEngineers', authenticateToken, proejctinchargeController.getActiveEnginrres)
+router.get('/allusers', authenticateToken, adminCtrl.getAllusers)
+
+
+
+
+router.get("/get-counts", authenticateToken, countController.count)
+router.post("/changeRole", authenticateToken, adminCtrl.changeRoleAndCreateHistory)
 export default router;
+
+console.log("rote file");
+
+//generate report pdf
+router.get("/report/pdf", authenticateToken, adminCtrl.downloadPdf)

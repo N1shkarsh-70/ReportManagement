@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { FaProjectDiagram, FaUserTie, FaUserCheck, FaMapMarkerAlt, FaBuilding } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
-import { addProject } from "../../features/projectSlice";
-import { getallProjectIncharge } from "../../features/projectInchargeSlice";
+import { addProject } from "../../../features/projectSlice";
+import { getallProjectIncharge } from "../../../features/projectInchargeSlice";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 

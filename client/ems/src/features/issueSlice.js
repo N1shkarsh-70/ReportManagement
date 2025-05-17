@@ -1,30 +1,66 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import Project from "../../../../server/model/projectModel";
 
 // Async thunk to add an issue
 export const addIssue = createAsyncThunk("plaza/addIssue", async (payload, { rejectWithValue, getState }) => {
   try {
     const token = getState().auth.token;
-    const response = await axios.post("http://82.29.162.1:3000/superadmin/add-issue", payload, {
+    const response = await axios.post("http://192.168.29.221:3000/superadmin/add-issue", payload, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    return response.data; 
+    return response.data;
   } catch (err) {
+    console.log(err);
+
     return rejectWithValue(err.response?.data?.message || "Error adding issue");
   }
 });
 
 // Async thunk to get all issues
-export const getAllIssues = createAsyncThunk("plaza/getAllIssues", async (_, { rejectWithValue, getState }) => {
+export const getAllPendingIssues = createAsyncThunk("plaza/getAllPendingIssues", async (_, { rejectWithValue, getState }) => {
   try {
     const token = getState().auth.token;
-    const response = await axios.get("http://82.29.162.1:3000/superadmin/get-allIssues", {
+    const response = await axios.get("http://192.168.29.221:3000/superadmin/get-allPendingIssues", {
       headers: { Authorization: `Bearer ${token}` },
     });
     console.log("API Response:", response.data);
-    return response.data.issues; 
+    return response.data.issues;
   } catch (err) {
-    return rejectWithValue(err.response?.data?.message || "Error fetching issues");
+    console.log(err);
+
+    return rejectWithValue(err.response?.data?.msg || "Error fetching issues");
+  }
+});
+
+export const getIssuesByPlazaId = createAsyncThunk("plaza/getIssuesByPlazaId", async (_, { rejectWithValue, getState }) => {
+  try {
+    const token = getState().auth.token;
+    const response = await axios.get("http://192.168.29.221:3000/superadmin/get-issuesByPlazaId", {
+      headers: { Authorization: `http://192.168.29.221Bearer ${token}` },
+    });
+    console.log("API Response:", response.data);
+    return response.data.issues;
+  } catch (err) {
+    console.log(err);
+
+    return rejectWithValue(err.response?.data?.msg || "Error fetching issues");
+  }
+
+})
+
+export const getAllIssues = createAsyncThunk("plaza/getAllIssues", async (_, { rejectWithValue, getState }) => {
+  try {
+    const token = getState().auth.token;
+    const response = await axios.get("http://192.168.29.221:3000/superadmin/get-allIssues", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    console.log("API Response:", response.data);
+    return response.data.issues;
+  } catch (err) {
+    console.log(err);
+
+    return rejectWithValue(err.response?.data?.msg || "Error fetching issues");
   }
 });
 
@@ -33,38 +69,65 @@ export const resolveIssue = createAsyncThunk(
   async ({ issueId, remarks }, { rejectWithValue, getState }) => {
     try {
       const token = getState().auth.token;
-      const response = await axios.post("http://82.29.162.1:3000/superadmin/resolve-issue", {
+      const response = await axios.post("http://192.168.29.221:3000/superadmin/resolve-issue", {
         issueId,
         remarks,
-      },{
+      }, {
         headers: { Authorization: `Bearer ${token}` },
       });
-  console.log(response);
-  
+      console.log(response);
+
       return response.data; // Return updated issue
     } catch (error) {
+      console.log(error);
+
       return rejectWithValue(error.response.data);
     }
   }
 );
 
 
-export const getIssuesById = createAsyncThunk(
+export const getPendingIssuesById = createAsyncThunk(
   "issues/getIssuesById",
   async (_, { rejectWithValue, getState }) => {
+    console.log("helllo from issues by id");
+
     try {
       const token = getState().auth.token;
-      const response = await axios.get("http://82.29.162.1:3000/superadmin/get-allIssuesById",{
+      const response = await axios.get("http://192.168.29.221:3000/superadmin/get-allPendingIssuesById", {
         headers: { Authorization: `Bearer ${token}` },
       });
-  console.log(response);
-  
-      return response.data || []; // Return updated issue
+      console.log(response);
+
+      return response.data.issues; // Return updated issue
     } catch (error) {
+      console.log(error);
+
       return rejectWithValue(error.response.data);
     }
   }
+
 );
+
+export const getIssuesByProjectId = createAsyncThunk("issues/getIssuesByProjectId",
+  async (projectId, { rejectWithValue, getState }) => {
+
+    try {
+      const token = getState().auth.token;
+      const response = await axios.get(`http://192.168.29.221:3000/superadmin/get-projectIssues/${projectId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log(response);
+
+      return response.data.issues; // Return updated issue
+    } catch (error) {
+      console.log(error);
+
+      return rejectWithValue(error.response.data);
+    }
+
+  }
+)
 
 
 
@@ -95,6 +158,20 @@ const issueSlice = createSlice({
         state.status = "failed";
         state.error = action.payload;
       })
+      .addCase(getAllPendingIssues.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(getAllPendingIssues.fulfilled, (state, action) => {
+        console.log("Redux Store Updated:", action.payload);
+        state.status = "succeeded";
+        state.allIssues = Array.isArray(action.payload) ? action.payload : [];
+      })
+      .addCase(getAllPendingIssues.rejected, (state, action) => {
+        console.log(action.payload);
+
+        state.status = "failed";
+        state.error = action.payload;
+      })
       .addCase(getAllIssues.pending, (state) => {
         state.status = "loading";
       })
@@ -104,6 +181,8 @@ const issueSlice = createSlice({
         state.allIssues = Array.isArray(action.payload) ? action.payload : [];
       })
       .addCase(getAllIssues.rejected, (state, action) => {
+        console.log(action.payload);
+
         state.status = "failed";
         state.error = action.payload;
       })
@@ -113,17 +192,40 @@ const issueSlice = createSlice({
       .addCase(resolveIssue.rejected, (state, action) => {
         state.error = action.payload;
       })
-      .addCase(getIssuesById.pending, (state) => {
+      .addCase(getPendingIssuesById.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(getIssuesById.fulfilled, (state, action) => {
+      .addCase(getPendingIssuesById.fulfilled, (state, action) => {
+        console.log("function fulfilled");
+
         state.status = "succeeded";
         state.allIssues = Array.isArray(action.payload) ? action.payload : []; // Ensure it's always an array
       })
-      .addCase(getIssuesById.rejected, (state, action) => {
+      .addCase(getPendingIssuesById.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload || "error fetching issues by id";
-      });
+        state.error = action.payload
+      })
+      .addCase(getIssuesByProjectId.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(getIssuesByProjectId.fulfilled, (state, action) => {
+        console.log("function fulfilled");
+
+        state.status = "succeeded";
+        state.allIssues = Array.isArray(action.payload) ? action.payload : []; // Ensure it's always an array
+      })
+      .addCase(getIssuesByProjectId.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload
+      }).addCase(getIssuesByPlazaId.fulfilled, (state, action) => {
+        state.status = "succeeded"
+        state.allIssues = Array.isArray(action.payload) ? action.payload : [];
+      }).addCase(getIssuesByPlazaId.pending, (state) => {
+        state.status = "loading"
+      }).addCase(getIssuesByPlazaId.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload
+      })
   },
 });
 

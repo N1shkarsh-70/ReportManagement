@@ -5,11 +5,15 @@ const projectSchema = new mongoose.Schema({
     PIU_Name: {type: String, required: true},
     location: {type: String, required: true, unique: true},
     projectName: { type: String, required: true, unique: true },
+    isActive: {
+     type : Boolean,
+     default: true
+    },
     plazas:[{
       type: mongoose.Schema.Types.ObjectId,
       ref: "Plaza"
     }],
-    assignedTo: {type: mongoose.Schema.Types.ObjectId, ref:'ProjectIncharge'},
+    assignedTo: {type: mongoose.Schema.Types.ObjectId, ref:'User'},
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Admin" }, // Created by an Admin
   }, { timestamps: true });
   

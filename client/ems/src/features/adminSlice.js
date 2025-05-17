@@ -5,7 +5,7 @@ import axios from "axios";
 // Fetch all admins from API
 export const getallAdmins = createAsyncThunk("admin/getAll", async (_, {rejectWithValue}) => {
   try{
-const response = await axios.get("http://82.29.162.1:3000/superadmin/get-alladmins");
+const response = await axios.get("http://192.168.29.221:3000/superadmin/get-alladmins");
 console.log(response);
 
 return response.data.admins;
@@ -17,7 +17,7 @@ return response.data.admins;
 
 export const getallactiveAdmins = createAsyncThunk("admin/getAllactive", async (_, {rejectWithValue}) => {
     try{
-  const response = await axios.get("http://82.29.162.1:3000/superadmin/get-allActive-admin");
+  const response = await axios.get("http://192.168.29.221:3000/superadmin/get-allActive-admin");
   console.log(response.data.admins);
   
   return response.data.admins;
@@ -28,7 +28,7 @@ export const getallactiveAdmins = createAsyncThunk("admin/getAllactive", async (
 
 export const addnewAdmin= createAsyncThunk('add/Admin', async(adminData, {rejectWithValue})=>{
     try{
-    const response= await axios.post('http://82.29.162.1:3000/superadmin/add-admin', adminData);
+    const response= await axios.post('http://192.168.29.221:3000/superadmin/add-admin', adminData);
     console.log(response);
     return response.status
     }catch(err){
@@ -40,7 +40,7 @@ export const deleteAdmin= createAsyncThunk('remove/admin', async(username, {reje
   try{
     console.log(username);
     
-   const response= await axios.delete(`http://82.29.162.1:3000/superadmin/delete-admin/${username}`)
+   const response= await axios.delete(`http://192.168.29.221:3000/superadmin/delete-admin/${username}`)
    console.log(response);
    if(response.status===200){return "ok"}
    else{return response.data.message}

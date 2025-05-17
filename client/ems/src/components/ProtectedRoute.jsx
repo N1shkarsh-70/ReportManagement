@@ -19,7 +19,7 @@ const isTokenExpiringSoon = (token) => {
 
 const ProtectedRoute = ({ children, roles }) => {
   const dispatch = useDispatch();
-  const { token, isAuthenticated, role } = useSelector((state) => state.auth);
+  const { token, isAuthenticated, role, isEngineerAlso } = useSelector((state) => state.auth);
 
   // Token refresh logic
   useEffect(() => {
@@ -53,9 +53,22 @@ const ProtectedRoute = ({ children, roles }) => {
 
   // Redirect to unauthorized page if the user's role is not allowed
   if (roles && !roles.includes(role)) {
+   if(role=== "project_incharge" && isEngineerAlso=== true){
+    return children;
+   }
+    else{
     return <Navigate to="/unauthorized" replace />;
+    }
   }
 
+  else{
+
+  if (roles && !roles.includes(role)) {
+    console.log(role);
+    
+    return <Navigate to="/unauthorized" replace />;
+  }
+  }
   // If authenticated and role is allowed, render the children
   return children;
 };

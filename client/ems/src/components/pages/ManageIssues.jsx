@@ -58,13 +58,13 @@ export default function ManageIssues() {
             </thead>
             <tbody>
               {issues.length > 0 ? (
-                issues.map((issue, index) => (
+                issues.filter((issue)=> issue.status==="Pending").map((issue, index) => (
                   <tr key={issue.issueId} className="border-b hover:bg-gray-100">
                     <td className="p-3">{index + 1}</td>
                     <td className="p-3">{issue.issueId}</td>
                     <td className="p-3">{issue.problemType}</td>
                     <td className="p-3">{issue.description ? issue.description.split(" ").slice(0, 3).join(" ") + "..." : "No description"}</td>
-                    <td className="p-3">{issue.plazaId.plazaName}</td>
+                    <td className="p-3">{issue?.plazaId?.plazaName}</td>
                     <td className="p-3">{issue.status}</td>
                     <td className="p-3">
                       <input
@@ -111,7 +111,7 @@ export default function ManageIssues() {
             <p className="text-gray-700"><strong>Issue ID:</strong> {selectedIssue.issueId}</p>
             <p className="text-gray-700"><strong>Issue Type:</strong> {selectedIssue.problemType}</p>
             <p className="text-gray-700"><strong>Description:</strong> {selectedIssue.description}</p>
-            <p className="text-gray-700"><strong>Plaza Name:</strong> {selectedIssue.plazaId.plazaName}</p>
+            <p className="text-gray-700"><strong>Plaza Name:</strong> {selectedIssue?.plazaId?.plazaName}</p>
             <p className="text-gray-700"><strong>Status:</strong> {selectedIssue.status}</p>
             <p className="text-gray-700"><strong>Issue Time:</strong> {new Date(selectedIssue.issueTime).toLocaleString()}</p>
             <p className="text-gray-700"><strong>Reported By:</strong> {selectedIssue.reportedBy?.username || "Unknown"}</p>

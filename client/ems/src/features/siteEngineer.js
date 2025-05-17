@@ -7,13 +7,15 @@ export const fetchSiteEngineers = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     try {
       const token = getState().auth.token; // Get token from Redux store
-      const response = await axios.get("http://82.29.162.1:3000/superadmin/get-allsiteengineers", {
+      const response = await axios.get("http://192.168.29.221:3000/superadmin/get-allsiteengineers", {
         headers: { Authorization: `Bearer ${token}` }, // Attach token in headers
       });
 
       console.log("Site Engineers Data:", response.data); // Debugging
       return response.data;
     } catch (error) {
+      console.log(error);
+      
       return rejectWithValue(error.response?.data?.message || "Failed to fetch site engineers");
     }
   }
@@ -26,13 +28,15 @@ export const fetchActiveSiteEngineers = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     try {
       const token = getState().auth.token; // Get token from Redux store
-      const response = await axios.get("http://82.29.162.1:3000/superadmin/get-activeEngineers", {
+      const response = await axios.get("http://192.168.29.221:3000/superadmin/get-activeEngineers", {
         headers: { Authorization: `Bearer ${token}` }, // Attach token in headers
       });
 
       console.log("Site Engineers Data:", response.data); // Debugging
       return response.data;
     } catch (error) {
+      console.log(error);
+      
       return rejectWithValue(error.response?.data?.message || "Failed to fetch active site engineers");
     }
   }
@@ -48,13 +52,15 @@ export const getEngineerNamesByIds = createAsyncThunk("admin/getPlazaNames", asy
     // Ensure it's an actual array
     const formattedEngineerIds = Array.isArray(engineerIds) ? [...engineerIds] : [];
     
-    const response = await axios.post("http://82.29.162.1:3000/superadmin/get-nameById", {engineerIds: formattedEngineerIds}  , {
+    const response = await axios.post("http://192.168.29.221:3000/superadmin/get-nameById", {engineerIds: formattedEngineerIds}  , {
       headers: { Authorization: `Bearer ${token}` },
     });
     console.log(response);
     
     return response.data.engineers; // Assuming the API returns { "plazas": [{ _id, name }, ...] }
   } catch (err) {
+    console.log(err);
+    
     return rejectWithValue(err.response?.data || "Failed to fetch plaza names");
   }
 });
@@ -69,7 +75,7 @@ export const addSiteEngineer = createAsyncThunk(
   
         const token = getState().auth.token; // Ensure getState is included in parameters
         const response = await axios.post(
-          "http://82.29.162.1:3000/superadmin/add-engineer",
+          "http://192.168.29.221:3000/superadmin/add-engineer",
           payload,
           {
             headers: { Authorization: `Bearer ${token}` },
@@ -79,6 +85,8 @@ export const addSiteEngineer = createAsyncThunk(
         console.log(response.data);
         return response.data; // Return the added engineer's data
       } catch (error) {
+        console.log(error);
+        
         return rejectWithValue(error.response?.data?.message || "Failed to add site engineer");
       }
     }
@@ -92,12 +100,14 @@ export const deleteSiteEngineer = createAsyncThunk(
       console.log(username);
       
       const token = getState().auth.token;
-      await axios.delete(`http://82.29.162.1:3000/superadmin/delete-engineer/${username}`, {
+      await axios.delete(`http://192.168.29.221:3000/superadmin/delete-engineer/${username}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       return id; // Return the deleted engineer's ID
     } catch (error) {
+      console.log(error);
+      
       return rejectWithValue(error.response?.data?.message || "Failed to delete site engineer");
     }
   }
@@ -110,13 +120,15 @@ export const updateSiteEngineer = createAsyncThunk(
     try {
       const token = getState().auth.token;
       const response = await axios.put(
-        `http://82.29.162.1:3000/superadmin/update-siteengineer/${id}`,
+        `http://192.168.29.221:3000/superadmin/update-siteengineer/${id}`,
         updatedData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       return response.data;
     } catch (error) {
+      console.log(error);
+      
       return rejectWithValue(error.response?.data?.message || "Failed to update site engineer");
     }
   }

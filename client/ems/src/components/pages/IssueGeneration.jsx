@@ -1,22 +1,41 @@
-import { useState } from "react";
+import { useState , useEffect} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { ToastContainer, toast } from "react-toastify";
-import { addIssue } from "../../features/issueSlice";
-
+import { addIssue, getPendingIssuesById } from "../../features/issueSlice.js";
+import { CustomSelect } from "./Admin/AddSiteEngineer.jsx";
+import { getProjectByInchargeId } from "../../features/projectSlice"; 
 import "react-toastify/dist/ReactToastify.css";
 
 const IssueGeneration = () => {
   const dispatch = useDispatch();
-  const username = useSelector((state) => state.auth.user);
+  const user = useSelector((state) => state.auth.user);
+
+  const { projects, status: projectStatus, error } = useSelector((state) => state.project);
+
+  useEffect(() => {
+    dispatch(getProjectByInchargeId());
+  }, [dispatch])
+
+  
+  const projectId= useSelector((state)=> state.project.projects[0])
+  const isEngineerAlso= useSelector((state)=> state.auth.isEngineerAlso)
+
+
+  
 
   const [formData, setFormData] = useState({
     problemType: "",
     description: "",
     timeOfIssue: "",
+    plazaId: ""
   });
+
+ 
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    console.log(formData);
+    
   };
 
   const handleSubmit = async (e) => {
@@ -25,7 +44,20 @@ const IssueGeneration = () => {
     
     try {
       const result = await dispatch(addIssue(formData)).unwrap();
+     
       toast.success("Issue created successfully!", { position: "top-right" });
+      setFormData({
+        problemType: "",
+        description: "",
+        timeOfIssue: "",
+        plazaId: ""
+      }
+
+      )
+
+      dispatch(getPendingIssuesById())
+      
+     
     } catch (error) {
       toast.error("Failed to create issue!", { position: "top-right" });
     }
@@ -38,7 +70,7 @@ const IssueGeneration = () => {
         
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Issue Type Selection */}
-          <select name="problemType" className={inputField} onChange={handleChange} required>
+          <select name="problemType" className={inputField} value={formData.problemType} onChange={handleChange} required>
             <option value="">Select Issue Type</option>
             <option value="Hardware">Hardware</option>
             <option value="Software">Software</option>
@@ -47,14 +79,22 @@ const IssueGeneration = () => {
           {/* Issue Description */}
           <textarea
             name="description"
+            value={formData.description}
             className={inputField}
             placeholder="Issue Description"
             onChange={handleChange}
             required
           ></textarea>
 
+{ isEngineerAlso && <CustomSelect
+              label="Select Plaza"
+              options={projectId?.plazas?.map(plaza => ({ label: plaza.plazaName, value: plaza._id })) || []}
+              selected={projectId?.plazas?.find(plaza => plaza._id === formData.plazaId)?.plazaName || "Select Plaza"} 
+              onChange={(value) => setFormData({ ...formData, plazaId: value })}
+            />}
+
           {/* Time of Issue */}
-          <input type="datetime-local" name="timeOfIssue" className={inputField} onChange={handleChange} />
+          <input type="datetime-local" name="timeOfIssue" className={inputField} value={formData.timeOfIssue} onChange={handleChange} />
 
           {/* Submit Button */}
           <button className="w-full bg-blue-600 text-white py-2 rounded-lg text-lg font-semibold hover:bg-blue-700 transition">

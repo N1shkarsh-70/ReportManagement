@@ -4,6 +4,7 @@ import SiteEngineers from "../model/siteEngineerModel.js";
 import SuperAdmin from "../model/superAdminModel.js";
 import ProjectIncharge from "../model/projectEngineerModel.js";
 import authEssentials from "./index.js"
+import { User } from "../model/user.js";
 import jwt from "jsonwebtoken"
 import { dotenvVar } from "../config.js";
 import { response } from "express";
@@ -38,19 +39,13 @@ const authController= {
                 }
             }
     
-            if (!user) {
-                const projectIncharge = await ProjectIncharge.findOne({ email });
-                if (projectIncharge) {
-                    user = projectIncharge;
-                    role = "projectIncharge"; // Fixed typo
-                }
-            }
+            
     
             if (!user) {
-                const siteEngineer = await SiteEngineers.findOne({ email });
+                const siteEngineer = await User.findOne({ email });
                 if (siteEngineer) {
                     user = siteEngineer;
-                    role = "siteEngineer";
+                    role = user.currentRole;
                 }
             }
     
@@ -58,6 +53,8 @@ const authController= {
             if (!user) {
                 return res.status(401).json({ message: "Invalid credentials" });
             }
+            console.log(user);
+            
     
             // Check if password is correct
             const isMatch = await authEssentials.verifyPassword(password, user.password);
@@ -74,17 +71,27 @@ const authController= {
                 secure: false,    
                 maxAge: 7 * 24 * 60 * 60 * 1000, 
                 sameSite: "Lax",
-                domain : "82.29.162.1",
                 path: "/"
             });
             console.log("Set-Cookie header sent:", refreshToken); // Debug log
-     
+
+            if(user.role=== "projectIncharge"){
+                res.status(200).json({
+                    message: "Login success",
+                    token,
+                    user: user._id,
+                    role: role,
+                    isEngineerAlso: user.isEngineerAlso
+                });
+            }
+            else{
             res.status(200).json({
                 message: "Login success",
                 token,
                 user: user._id,
                 role: role,
-            });
+                
+            });}
     
         } catch (err) {
             console.error(err);

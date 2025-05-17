@@ -1,33 +1,35 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchPlazas } from "../../features/plazaSlice";
-import { getEngineerNamesByIds } from "../../features/siteEngineer";
+import { fetchPlazas } from "../../../features/plazaSlice";
+import { getEngineerNamesByIds } from "../../../features/siteEngineer";
 
 const ProjectsTable = () => {
   const dispatch = useDispatch();
-  const { plazas, status, error } = useSelector((state) => state.plaza);
-  const { engineerNames } = useSelector((state) => state.siteEngineer);
+  const { plazas = [], status, error } = useSelector((state) => state.plaza) || {}; // Default to empty array
   const [selectedPlaza, setSelectedPlaza] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [employees, setEmployees] = useState([]);
 
   useEffect(() => {
-    if (status === "idle") {
-      dispatch(fetchPlazas());
-    }
-  }, [dispatch, status]);
+    dispatch(fetchPlazas());
+  }, [dispatch]); // Ensures dispatch doesn't cause unnecessary re-renders
 
   const handleViewEmployees = async (plaza) => {
+    if (!plaza) return;
+    
     setSelectedPlaza(plaza);
     setIsModalOpen(true);
 
-    if (plaza.assignedTo.length > 0) {
+    if (Array.isArray(plaza?.assignedTo) && plaza.assignedTo.length > 0) {
+      let isMounted = true;
       try {
         const result = await dispatch(getEngineerNamesByIds(plaza.assignedTo)).unwrap();
-        setEmployees(result); // Assuming API returns an array of { firstName, lastName }
-      } catch (error) {
-        console.error("Failed to fetch employee names:", error);
+        if (isMounted) setEmployees(result || []);
+      } catch (err) {
+        console.error("Failed to fetch employee names:", err);
       }
+
+      return () => { isMounted = false }; // Cleanup to prevent memory leaks
     } else {
       setEmployees([]);
     }
@@ -50,7 +52,7 @@ const ProjectsTable = () => {
         </div>
         {status === "loading" && <p className="text-center py-4">Loading plazas...</p>}
         {error && <p className="text-center py-4 text-red-600">{error}</p>}
-        {status === "succeeded" && (
+        {status === "succeeded" && plazas.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -79,14 +81,14 @@ const ProjectsTable = () => {
                       {plaza.plazaName}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {plaza.project.location}
+                      {plaza?.project?.location || "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {plaza.project.PIU_Name}
+                      {plaza?.project?.PIU_Name || "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       <span className="px-3 py-1 inline-flex text-sm font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {plaza.assignedTo.length}
+                        {plaza?.assignedTo?.length || 0}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
@@ -102,6 +104,8 @@ const ProjectsTable = () => {
               </tbody>
             </table>
           </div>
+        ) : (
+          <p className="text-center py-4">No plazas available.</p>
         )}
       </div>
 

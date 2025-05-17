@@ -24,7 +24,12 @@ function authenticateToken(req, res, next) {
             console.log(err);
             
             return res.status(403).json({message: "invalid token please login again"})}; // Forbidden
+            console.log(user);
+            
         req.user = user; // Attach user details to the request object
+        console.log(req.user);
+        console.log("hello");
+        
         next();
     });
 }

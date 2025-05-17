@@ -4,7 +4,7 @@ import { refreshAccessToken, logout } from "../features/authSlice";
 
 
 const axiosInstance = axios.create({
-    baseURL: import.meta.env.VITE_API_URL_PRODUCTION, // Replace with your backend URL
+    baseURL: import.meta.env.VITE_API_URL_DEVELOPMENT, // Replace with your backend URL
     withCredentials: true,
   });
 

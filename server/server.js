@@ -4,6 +4,7 @@ import cors from "cors"
 import {dotenvVar, init} from "./config.js"
 import authRoutes from "./routes/authRoutes.js"
 import commonRoutes from "./routes/commonRoutes.js"
+import attendenceRoutes from "./routes/attendenceRoute.js"
 import cookieParser from "cookie-parser"
 const app= express()
 app.use(cookieParser())
@@ -12,6 +13,9 @@ app.use(express.json())
 const allowedOrigins = [
 
     "http://localhost:5000",
+    "http://192.168.29.43:5000",
+    "http://192.168.29.221:5000",
+    
     "http://82.29.162.1:3000",
     "http://82.29.162.1:5000" // Local React App
     
@@ -31,8 +35,9 @@ const allowedOrigins = [
     })
   );
 
-app.use('/user', authRoutes);
-app.use('/superadmin', commonRoutes)
+app.use('/api/user', authRoutes);
+app.use('/superadmin', commonRoutes);
+app.use('/api/attendence', attendenceRoutes)
 
 
 
