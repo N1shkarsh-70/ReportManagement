@@ -5,7 +5,7 @@ import axios from "axios";
 export const fetchPlazas = createAsyncThunk("plaza/fetchPlazas", async (_, { getState, rejectWithValue }) => {
     try {
       const token = getState().auth.token; // Get token from auth state
-      const response = await axios.get("http://192.168.29.221:3000/superadmin/get-allplaza", {
+      const response = await axios.get("http://192.168.29.124:3000/superadmin/get-allplaza", {
         headers: { Authorization: `Bearer ${token}` }, // Attach token in headers
       });
       console.log('plazas:"',response);
@@ -24,7 +24,7 @@ export const fetchPlazas = createAsyncThunk("plaza/fetchPlazas", async (_, { get
       console.log("hello from function");
       
       const token = getState().auth.token; // Get token from auth state
-      const response = await axios.get(`http://192.168.29.221:3000/superadmin/get-plazasByProject/${projectId}`, {
+      const response = await axios.get(`http://192.168.29.124:3000/superadmin/get-plazasByProject/${projectId}`, {
         headers: { Authorization: `Bearer ${token}` }, // Attach token in headers
       });
       console.log('plazas:"',response.data);
@@ -48,7 +48,7 @@ export const getPlazaNamesByIds = createAsyncThunk("admin/getPlazaNames", async 
     // Ensure it's an actual array
     const formattedPlazaIds = Array.isArray(plazaIds) ? [...plazaIds] : [];
     
-    const response = await axios.post("http://192.168.29.221:3000/superadmin/get-plazaNames", {plazaIds: formattedPlazaIds}  , {
+    const response = await axios.post("http://192.168.29.124:3000/superadmin/get-plazaNames", {plazaIds: formattedPlazaIds}  , {
       headers: { Authorization: `Bearer ${token}` },
     });
     console.log(response);
@@ -63,7 +63,7 @@ export const getPlazaNamesByIds = createAsyncThunk("admin/getPlazaNames", async 
   export const addPlaza= createAsyncThunk("plaza/addPlaza", async (payload, {rejectWithValue,getState})=>{
     try{
     const token = getState().auth.token; // Get token from auth state
-    const response= await axios.post("http://192.168.29.221:3000/superadmin/add-plaza", payload,{
+    const response= await axios.post("http://192.168.29.124:3000/superadmin/add-plaza", payload,{
       headers: { Authorization: `Bearer ${token}` }, // Attach token in headers
     })
 
@@ -79,12 +79,12 @@ export const getPlazaNamesByIds = createAsyncThunk("admin/getPlazaNames", async 
   })
 
 export const deletePlaza = createAsyncThunk("plaza/deletePlaza", async (id) => {
-  await axios.delete(`http://192.168.29.221:3000/superadmin/delete-plaza/${id}`);
+  await axios.delete(`http://192.168.29.124:3000/superadmin/delete-plaza/${id}`);
   return id;
 });
 
 export const updatePlaza = createAsyncThunk("plaza/updatePlaza", async ({ id, updatedData }) => {
-  const response = await axios.put(`http://192.168.29.221:3000/superadmin/update-plaza/${id}`, updatedData);
+  const response = await axios.put(`http://192.168.29.124:3000/superadmin/update-plaza/${id}`, updatedData);
   return response.data;
 });
 

@@ -5,7 +5,7 @@ import axios from "axios";
 export const getallProjects = createAsyncThunk("admin/getAllProject", async (_, { rejectWithValue, getState }) => {
   try {
     const token = getState().auth.token;
-    const response = await axios.get("http://192.168.29.221:3000/superadmin/get-allproject", {
+    const response = await axios.get("http://192.168.29.124:3000/superadmin/get-allproject", {
       headers: { Authorization: `Bearer ${token}` },
     });
     console.log(response);
@@ -26,7 +26,7 @@ export const updateProject = createAsyncThunk("admin/updateProject", async ({ id
     
     
     const token = getState().auth.token;
-    const response = await axios.put(`http://192.168.29.221:3000/superadmin/update-project/${id}`, formData, {
+    const response = await axios.put(`http://192.168.29.124:3000/superadmin/update-project/${id}`, formData, {
       headers: { Authorization: `Bearer ${token}` },
     });
     console.log(response);
@@ -43,7 +43,7 @@ export const updateProject = createAsyncThunk("admin/updateProject", async ({ id
 export const getProjectByInchargeId = createAsyncThunk("incharge/getProjectsByIncharge", async (_, { rejectWithValue, getState }) => {
   try {
     const token = getState().auth.token;
-    const response = await axios.get("http://192.168.29.221:3000/superadmin/get-projectsByInchargeId", {
+    const response = await axios.get("http://192.168.29.124:3000/superadmin/get-projectsByInchargeId", {
       headers: { Authorization: `Bearer ${token}` },
     });
     console.log(response);
@@ -60,7 +60,7 @@ export const getProjectByInchargeId = createAsyncThunk("incharge/getProjectsByIn
 export const addProject = createAsyncThunk("admin/addProject", async (payload, { rejectWithValue, getState }) => {
   try {
     const token = getState().auth.token;
-    const response = await axios.post("http://192.168.29.221:3000/superadmin/add-project", payload, {
+    const response = await axios.post("http://192.168.29.124:3000/superadmin/add-project", payload, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return response.data;

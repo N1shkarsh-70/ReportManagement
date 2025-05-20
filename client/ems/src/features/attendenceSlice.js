@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { format } from 'date-fns';
 
-const API_URL = 'http://192.168.29.221:3000/api/attendence';
+const API_URL = 'http://192.168.29.124:3000/api/attendence';
 
 // Async Thunks
 export const markAttendance = createAsyncThunk(

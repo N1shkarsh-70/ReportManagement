@@ -14,7 +14,7 @@ import UserSelector from '../../UserSelector';
 
 const AdminAttendanceManagement = () => {
   const token = localStorage.getItem('token')
-  const apiUrl = "http://192.168.29.221:3000/api/attendence/generate-attendance"
+  const apiUrl = "http://192.168.29.124:3000/api/attendence/generate-attendance"
   const dispatch = useDispatch();
   const { allAttendance, loading, error, success } = useSelector((state) => state.attendance);
   const { users } = useSelector((state) => state.users);
@@ -93,7 +93,7 @@ const [reportEndDate, setReportEndDate] = useState('');
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Attendance Management</h2>
 
       <div><button  onClick={() => setShowModal(true)}
-    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">generate Report</button></div>
+    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Generate Report</button></div>
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <div>

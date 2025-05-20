@@ -6,7 +6,7 @@ import { getallactiveAdmins } from "./adminSlice";
 export const getallProjectIncharge = createAsyncThunk("admin/getAllProjectIncharge", async (_, {rejectWithValue, getState}) => {
     try{
         const token = getState().auth.token; // Get token from auth state
-  const response = await axios.get("http://192.168.29.221:3000/superadmin/get-allprojectIncharge",{
+  const response = await axios.get("http://192.168.29.124:3000/superadmin/get-allprojectIncharge",{
     headers: { Authorization: `Bearer ${token}` }, // Attach token in headers
   });
   console.log(response);
@@ -20,7 +20,7 @@ export const getallProjectIncharge = createAsyncThunk("admin/getAllProjectInchar
   export const addProjectIncharge = createAsyncThunk("admin/addProjectIncharge", async (payload, {rejectWithValue, getState}) => {
     try{
         const token= getState().auth.token
-  const response = await axios.post("http://192.168.29.221:3000/superadmin/add-projectIncharge", payload,{
+  const response = await axios.post("http://192.168.29.124:3000/superadmin/add-projectIncharge", payload,{
     headers: {Authorization: `Bearer ${token}`},
   });
   console.log(response);
@@ -34,7 +34,7 @@ export const getallProjectIncharge = createAsyncThunk("admin/getAllProjectInchar
   export const changeRole = createAsyncThunk("admin/changeRole", async (payload, {rejectWithValue, getState}) => {
     try{
         const token= getState().auth.token
-  const response = await axios.post("http://192.168.29.221:3000/superadmin/changeRole", payload,{
+  const response = await axios.post("http://192.168.29.124:3000/superadmin/changeRole", payload,{
     headers: {Authorization: `Bearer ${token}`},
   });
   console.log(response);

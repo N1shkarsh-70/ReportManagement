@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const API_URL = 'http://192.168.29.221:3000/superadmin/allusers';
+const API_URL = 'http://192.168.29.124:3000/superadmin/allusers';
 
 // Async Thunks
 

@@ -35,27 +35,27 @@ const AttendanceHistory = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 py-10 px-4 flex justify-center items-start">
+    <div className="min-h-screen w bg-gradient-to-br from-blue-100 to-purple-100 py-10 px-2 flex justify-center items-start">
       <div className="bg-white shadow-2xl rounded-2xl w-full max-w-4xl p-6 md:p-10">
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">📅 Your Attendance History</h2>
 
         {attendance.length === 0 ? (
           <p className="text-center text-gray-500 text-lg">No attendance records found.</p>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="w-full overflow-x-auto">
             <table className="min-w-full table-auto border-collapse">
               <thead>
                 <tr className="bg-gray-200 text-gray-700 text-left text-sm uppercase">
-                  <th className="px-6 py-3">Date</th>
-                  <th className="px-6 py-3">Status</th>
-                  <th className="px-6 py-3">Marked By</th>
+                  <th className="px-4 py-3 sm:px-1 sm:py-2 whitespace-nowrap">Date</th>
+                  <th className="px-4 py-3 sm:px-2 sm:py-2 whitespace-nowrap">Status</th>
+                  <th className="px-4 py-3 sm:px-2 sm:py-2 whitespace-nowrap">Marked By</th>
                 </tr>
               </thead>
               <tbody>
                 {attendance.map((record) => (
                   <tr key={record._id} className="border-b hover:bg-gray-100 transition">
-                    <td className="px-6 py-4">{format(new Date(record.date), 'MMM dd, yyyy')}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4 sm:px-2 sm:py-2 whitespace-nowrap">{format(new Date(record.date), 'MMM dd, yyyy')}</td>
+                    <td className="px-4 py-4 sm:px-2 sm:py-2 whitespace-nowrap">
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-semibold ${
                           record.status === 'present'
@@ -66,7 +66,7 @@ const AttendanceHistory = () => {
                         {record.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4">{record.markedBy || 'N/A'}</td>
+                    <td className="px-4 py-4 sm:px-2 sm:py-2 whitespace-nowrap">{record.markedBy || 'N/A'}</td>
                   </tr>
                 ))}
               </tbody>

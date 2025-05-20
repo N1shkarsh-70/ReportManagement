@@ -8,7 +8,7 @@ export const fetchCounts = createAsyncThunk(
   async (_, { rejectWithValue, getState }) => {
     try {
       const token = getState().auth.token;
-      const response = await axios.get("http://192.168.29.221:3000/superadmin/get-counts", {
+      const response = await axios.get("http://192.168.29.124:3000/superadmin/get-counts", {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log(response);

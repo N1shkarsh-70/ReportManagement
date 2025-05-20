@@ -17,7 +17,7 @@ const GenerateReport = () => {
   const [endDate, setEndDate] = useState(null);
 const token = localStorage.getItem('token')
   const dispatch = useDispatch();
-const apiUrl= "http://192.168.29.221:3000/superadmin/report/pdf"
+const apiUrl= "http://192.168.29.124:3000/superadmin/report/pdf"
   // Fetch data from Redux
   const { engineers, status, error } = useSelector((state) => state.siteEngineer)
   const plazas = useSelector((state) => state.plaza.plazas || []);
@@ -60,7 +60,7 @@ axios
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 ">
       <h2 className="text-2xl font-semibold mb-6">Generate Report</h2>
       <Form
         layout="vertical"
