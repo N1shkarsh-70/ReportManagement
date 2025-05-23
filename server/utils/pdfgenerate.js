@@ -1,10 +1,12 @@
 import puppeteer from 'puppeteer';
 import Issue from '../model/issueModel.js';
 import attendenceModel from '../model/attendenceMOdel.js';
+import Project from '../model/projectModel.js';
 import fs from 'fs';
 import path from 'path';
 
 export async function generatePDF(filters = {}) {
+  let flag= 0;
   const { engineerId, projectId, plazaId, startDate, endDate } = filters;
  let query={};
     if (engineerId) {
@@ -15,7 +17,33 @@ export async function generatePDF(filters = {}) {
     }
   
     if (projectId) {
-      query['plazaId'] = projectId;  // Filter by plazaId (assuming it's project related)
+      try {
+        flag=1;
+        // Fetch project and its plaza IDs
+        const project = await Project.findById(projectId).populate("plazas", "_id");
+    
+        if (!project) {
+          console.log("no projectFound");
+          
+          // return res.status(404).json({ message: "Project not found" });
+        }
+    
+        const plazaIds = project.plazas.map(plaza => plaza._id);
+    
+        // Find only pending issues from those plazas
+        var ProjectIssues = await Issue.find({
+          plazaId: { $in: plazaIds },
+          
+        }).populate("reportedBy", "username").populate('plazaId').populate("rectifiedBy")
+    
+        // return res.status(200).json({
+        //   message: "Pending issues fetched successfully",
+        //   issues,
+        // });
+      } catch (error) {
+        console.error("Error fetching issues:", error);
+        // return res.status(500).json({ message: "Server error", error });
+      }
     }
   
     if (plazaId) {
@@ -25,8 +53,9 @@ export async function generatePDF(filters = {}) {
     }
   
     if (startDate && endDate) {
-      query['issueTime'] = { $gte: new Date(startDate), $lte: new Date(endDate) };  // Filter by date range
+      query['issueTime'] = { $gte: new Date(startDate), $lte: new Date(endDate) };
     }
+    
   
     // Fetch filtered issues
     console.log(query);
@@ -37,7 +66,7 @@ export async function generatePDF(filters = {}) {
       .populate('plazaId');
   
     console.log("Fetched Issues:", issues.length);
-  const tableRows = issues.map(issue => {
+  const tableRows = flag===0? (issues.map(issue => {
     const reportedBy = issue.reportedBy ? `${issue.reportedBy.firstName} ${issue.reportedBy.lastName}` : 'N/A';
     const rectifiedBy = issue.rectifiedBy ? `${issue.rectifiedBy.firstName} ${issue.rectifiedBy.lastName}` : 'N/A';
     const plazaName = issue.plazaId?.plazaName || 'N/A';
@@ -55,7 +84,29 @@ export async function generatePDF(filters = {}) {
         <td>${issue.rectifiedTime?.toLocaleString() || 'N/A'}</td>
       </tr>
     `;
-  }).join('');
+  }).join('')) :(
+    ProjectIssues.map(issue => {
+      console.log(issue);
+      
+      const reportedBy = issue.reportedBy ? `${issue.reportedBy.username}` : 'N/A';
+      const rectifiedBy = issue.rectifiedBy ? `${issue.rectifiedBy.firstName} ${issue.rectifiedBy.lastName}` : 'N/A';
+      const plazaName = issue.plazaId?.plazaName || 'N/A';
+  
+      return `
+        <tr>
+          <td>${issue.issueId}</td>
+          <td>${issue.problemType}</td>
+          <td>${reportedBy}</td>
+          <td>${issue.description}</td>
+          <td>${plazaName}</td>
+          <td>${issue.issueTime?.toLocaleString() || 'N/A'}</td>
+          <td>${issue.remarks}</td>
+          <td>${rectifiedBy}</td>
+          <td>${issue.rectifiedTime?.toLocaleString() || 'N/A'}</td>
+        </tr>
+      `;
+    }).join(''))
+  
 
   const html = `
     <html>
@@ -200,3 +251,38 @@ console.log(attendanceRecords);
   }
 };
 
+export const generateProjectWisePdf= async()=>{
+
+    const { projectId } = req.body;
+
+  
+    if (!projectId) {
+      return res.status(400).json({ message: "Project ID is not a valid" });
+    }
+  
+    try {
+      // Fetch project and its plaza IDs
+      const project = await Project.findById(projectId).populate("plazas", "_id");
+  
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+  
+      const plazaIds = project.plazas.map(plaza => plaza._id);
+  
+      // Find only pending issues from those plazas
+      const issues = await Issue.find({
+        plazaId: { $in: plazaIds },
+        
+      }).populate("reportedBy", "username").populate('plazaId').populate("rectifiedBy")
+  
+      return res.status(200).json({
+        message: "Pending issues fetched successfully",
+        issues,
+      });
+    } catch (error) {
+      console.error("Error fetching issues:", error);
+      return res.status(500).json({ message: "Server error", error });
+    }
+  }
+  

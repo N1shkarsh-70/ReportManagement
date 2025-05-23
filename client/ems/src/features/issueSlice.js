@@ -1,3 +1,4 @@
+
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import Project from "../../../../server/model/projectModel";
@@ -37,7 +38,7 @@ export const getIssuesByPlazaId = createAsyncThunk("plaza/getIssuesByPlazaId", a
   try {
     const token = getState().auth.token;
     const response = await axios.get("http://192.168.29.124:3000/superadmin/get-issuesByPlazaId", {
-      headers: { Authorization: `http://192.168.29.124Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}` },
     });
     console.log("API Response:", response.data);
     return response.data.issues;
@@ -128,6 +129,30 @@ export const getIssuesByProjectId = createAsyncThunk("issues/getIssuesByProjectI
 
   }
 )
+
+export const updateIssue = createAsyncThunk("issues/getIssuesByProjectId",
+  async (payload, { rejectWithValue, getState }) => {
+
+    try {
+      const token = getState().auth.token;
+      const response = await axios.put(`http://192.168.29.124:3000/superadmin/updateIssue,payload`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      console.log(response);
+
+      return response.data.issues; // Return updated issue
+    } catch (error) {
+      console.log(error);
+
+      return rejectWithValue(error.response.data);
+    }
+
+  }
+)
+
+
 
 
 
@@ -230,4 +255,4 @@ const issueSlice = createSlice({
 });
 
 export const { resetStatus } = issueSlice.actions;
-export default issueSlice.reducer;
+export default issueSlice.reducer

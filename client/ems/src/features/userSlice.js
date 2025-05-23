@@ -58,8 +58,10 @@ export const getUsers = createAsyncThunk(
 // @access  Private (Admin or same user)
 export const updateUser = createAsyncThunk(
   'users/updateUser',
-  async ({ userId, userData }, { getState, rejectWithValue }) => {
+  async ( payload , { getState, rejectWithValue }) => {
     try {
+      console.log("in update");
+      
         const token = await getState().auth.token;
       const config = {
         headers: {
@@ -67,8 +69,11 @@ export const updateUser = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       };
-
-      const response = await axios.put(`${API_URL}/${userId}`, userData, config);
+   console.log(payload);
+   
+      const response = await axios.put(`http://192.168.29.124:3000/superadmin/update-user/${payload.id}`, payload.updatedData, config);
+      console.log(response);
+      
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -92,7 +97,7 @@ export const deleteUser = createAsyncThunk(
         },
       };
 
-      const response = await axios.delete(`${API_URL}/${userId}`, config);
+      const response = await axios.delete(`http://192.168.29.124:3000/superadmin/delete-user/${userId}`, config);
       return response.data;
     } catch (error) {
       return rejectWithValue(
